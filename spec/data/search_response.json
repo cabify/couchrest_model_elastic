@@ -1,0 +1,30 @@
+
+{
+    "took" : 1,
+    "timed_out" : false,
+    "_shards" : {
+        "total" : 5,
+        "successful" : 5,
+        "failed" : 0
+    },
+    "hits" : {
+        "total" : 500,
+        "max_score" : 1.0,
+        "hits" : [ {
+            "_index" : "couchindex",
+            "_type" : "Client",
+            "_id" : "abc",
+            "_score" : 2.0, "_source" : {"id":"A","role":"public","type":"Client"}
+        }, {
+            "_index" : "couchindex",
+            "_type" : "Client",
+            "_id" : "def",
+            "_score" : 1.0, "_source" : {"id":"B","role":"private","type":"Client"}
+        }, {
+            "_index" : "couchindex",
+            "_type" : "Client",
+            "_id" : "geh",
+            "_score" : 1.0, "_source" : {"id":"C","role":"test","type":"Client"}
+        } ]
+    }
+}
