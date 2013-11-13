@@ -28,10 +28,10 @@ module CouchrestModelElastic
       end
 
       def set_filter(filter_name, body)
-        @filter_name = filter_name
+        @filter_name = prefix_filter_name(filter_name)
         filter_fnc = %{function(doc, req){ #{body} }}
-        self.design_mapper.filter(filter_name, filter_fnc)
-        river_config.couch_filter = "#{self.design_mapper.design_doc.id.split('/').last}/#{filter_name}"
+        self.design_mapper.filter(@filter_name, filter_fnc)
+        river_config.couch_filter = "#{self.design_mapper.design_doc.id.split('/').last}/#{@filter_name}"
       end
 
       def named_search(*args, &query)
@@ -73,7 +73,7 @@ module CouchrestModelElastic
       end
 
       def default_filter!
-        set_filter(:search_default, "return doc['#{self.model.model_type_key}'] == '#{self.model.to_s}';")
+        set_filter(:default, "return doc['#{self.model.model_type_key}'] == '#{self.model.to_s}';")
       end
 
       def river_config_index_type
@@ -83,6 +83,10 @@ module CouchrestModelElastic
       # Helper to create a prefixed name given string *components
       def prefixed_name(*components)
         [*components, self.design_mapper.prefix].compact.join('-')
+      end
+
+      def prefix_filter_name(name)
+        ['couchrest_model_elastic', name].join('-')
       end
 
       def model_database_uri
