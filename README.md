@@ -1,4 +1,4 @@
-# CouchrestModelElastic
+# CouchrestModelElastic [![Build Status](https://travis-ci.org/MaxiMobility/couchrest_model_elastic.png)](https://travis-ci.org/MaxiMobility/couchrest_model_elastic)
 
 An Elasticsearch helper library, specifically for use with the `couchrest_model` gem.
 Automatically sets up Elasticsearch river to watch and import from Couchdb. Adds query functionality to any class.
