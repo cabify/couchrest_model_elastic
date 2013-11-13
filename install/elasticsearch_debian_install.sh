@@ -3,6 +3,11 @@
 VERSION=0.90.6
 BIN_DIR=/usr/share/elasticsearch/bin
 
+if ! java -version ; then
+    echo "Java not found"
+    exit 1
+fi
+
 # Elasticsearch debian package
 if ! dpkg -s elasticsearch | grep -q 'Status' ; then
     cd /tmp
