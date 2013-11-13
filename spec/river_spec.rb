@@ -6,6 +6,8 @@ describe CouchrestModelElastic::River do
     :couch_host => 'couch.host.com',
     :couch_port => 1234,
     :couch_db => 'big_db',
+    :couch_user => 'bigbird',
+    :couch_password => 'topsecret',
     :couch_filter => 'Design/filter',
     :index => 'SomeIndex',
     :type => 'SomeType',
@@ -21,6 +23,8 @@ describe CouchrestModelElastic::River do
           'host' => config[:couch_host],
           'port' => config[:couch_port],
           'db' => config[:couch_db],
+          'user' => config[:couch_user],
+          'password' => config[:couch_password],
           'filter' => config[:couch_filter]
         },
         'index' => {

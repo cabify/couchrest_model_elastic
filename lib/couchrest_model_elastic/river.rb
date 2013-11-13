@@ -7,7 +7,7 @@ module CouchrestModelElastic
     SEQ_ID = '_seq'
 
     #CouchDBConfig = Struct.new(:host, :port, :db, :filter, :script)
-    attr_accessor :config_index_type, :couch_db, :couch_host, :couch_port, :script, :couch_filter, :couch_filter_params, :index, :type, :last_seq, :status
+    attr_accessor :config_index_type, :couch_db, :couch_host, :couch_port, :couch_user, :couch_password, :script, :couch_filter, :couch_filter_params, :index, :type, :last_seq, :status
 
     def self.new_with_defaults(config_index_type, opts = {})
       self.new.tap do |river|
@@ -16,6 +16,8 @@ module CouchrestModelElastic
         river.couch_host = opts[:couch_host] || 'localhost'
         river.couch_port = opts[:couch_port] || 5984
         river.couch_db = opts[:couch_db]
+        river.couch_user = opts[:couch_user]
+        river.couch_password = opts[:couch_password]
         river.couch_filter = opts[:couch_filter]
         river.couch_filter_params = opts[:couch_filter_params]
         river.script = opts[:script] #|| 'ctx._type = ctx.doc.type || "null"'
@@ -35,6 +37,8 @@ module CouchrestModelElastic
               river.couch_db = doc['couchdb']['db']
               river.couch_host = doc['couchdb']['host']
               river.couch_port = doc['couchdb']['port']
+              river.couch_user = doc['couchdb']['user']
+              river.couch_password = doc['couchdb']['password']
               river.script = doc['couchdb']['script'] if doc['couchdb']['script']
               river.couch_filter = doc['couchdb']['filter'] if doc['couchdb']['filter']
               river.couch_filter_params = doc['couchdb']['filter_params'] if doc['couchdb']['filter_params']
@@ -59,6 +63,8 @@ module CouchrestModelElastic
           query.host self.couch_host
           query.port self.couch_port
           query.db self.couch_db if self.couch_db
+          query.user self.couch_user if self.couch_user
+          query.password self.couch_password if self.couch_password
           query.script self.script if self.script
           query.filter self.couch_filter if self.couch_filter # River will subscribe to changes feed with given couchdb filter applied
           if self.couch_filter_params

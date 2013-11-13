@@ -1,5 +1,3 @@
-require 'uri'
-
 module CouchrestModelElastic
   module CouchModelSearchable
 
@@ -10,7 +8,7 @@ module CouchrestModelElastic
     end
 
     class SearchConfig
-      attr_reader :design_mapper, :model, :search_index, :search_type
+      attr_reader :design_mapper, :model, :couchdb_database_config, :couchdb_database_name, :model_name, :search_index, :search_type
 
       def self.setup(*args, &config)
         self.new(*args).tap do |search_config|
@@ -22,8 +20,16 @@ module CouchrestModelElastic
       def initialize(design_mapper)
         @design_mapper = design_mapper
         @model = design_mapper.model
-        @search_index = self.model.database.name
-        @search_type = self.prefixed_name(self.model.to_s)
+        @model_name = @model.to_s
+
+        @couchdb_database_config =  design_mapper.model.send(:connection_configuration)
+        # This is a bit of a hack since model.database.name would instantiate the server connection, which would fail
+        @couchdb_database_name = [@couchdb_database_config[:prefix], @couchdb_database_config[:suffix]].reject{|s| s.to_s.empty?}.join(@couchdb_database_config[:join])
+
+        # The Elasticsearch index under which to import
+        @search_index = @couchdb_database_name
+        # The Elasticsearch type under which to import
+        @search_type = self.prefixed_name(@model_name)
         @filter_name = nil
       end
 
@@ -39,7 +45,7 @@ module CouchrestModelElastic
       end
 
       def named_searches
-        @named_searches ||= NamedSearches.new.tap { |ns|
+        @named_searches ||= NamedSearches.new { |ns|
           ns.index = self.search_index
           ns.type = self.search_type
           ns.result_source_mapper = RESULT_MAPPER
@@ -47,12 +53,14 @@ module CouchrestModelElastic
       end
 
       def river_config
-        @river_config ||= CouchrestModelElastic::River.new_with_defaults(river_config_index_type,
-          couch_db:     self.model.database.name,
-          couch_host:   self.model_database_uri.host,
-          couch_port:   self.model_database_uri.port,
-          index:        self.search_index,
-          type:         self.search_type
+        @river_config ||= CouchrestModelElastic::River.new_with_defaults(self.river_config_index_type,
+          couch_db:       self.couchdb_database_name,
+          couch_host:     self.couchdb_database_config[:host],
+          couch_port:     self.couchdb_database_config[:port],
+          couch_user:     self.couchdb_database_config[:username],
+          couch_password: self.couchdb_database_config[:password],
+          index:          self.search_index,
+          type:           self.search_type
         )
       end
 
@@ -73,11 +81,12 @@ module CouchrestModelElastic
       end
 
       def default_filter!
-        set_filter(:default, "return doc['#{self.model.model_type_key}'] == '#{self.model.to_s}';")
+        set_filter(:default, "return doc['#{self.model.model_type_key}'] == '#{self.model_name}';")
       end
 
       def river_config_index_type
-        self.prefixed_name(self.model.database.name, self.model.to_s)
+        # Unique Elasticsearch type for each river configuration
+        self.prefixed_name(self.couchdb_database_name, self.model_name)
       end
 
       # Helper to create a prefixed name given string *components
@@ -87,10 +96,6 @@ module CouchrestModelElastic
 
       def prefix_filter_name(name)
         ['couchrest_model_elastic', name].join('-')
-      end
-
-      def model_database_uri
-        @model_database_uri ||= URI.parse(self.model.database.host)
       end
     end
 
