@@ -10,6 +10,18 @@ module CouchrestModelElastic
     class SearchConfig
       attr_reader :design_mapper, :model, :couchdb_database_config, :couchdb_database_name, :model_name, :search_index, :search_type
 
+      def self.add_setup_callback(&clbk)
+        (@setup_callbacks ||= []) << clbk
+      end
+
+      def self.run_setup_callbacks
+        callback_count = 0
+        if @setup_callbacks && (callback_count = @setup_callbacks.size) > 0
+          @setup_callbacks.each { |clbk| clbk.call }.clear
+        end
+        callback_count
+      end
+
       def self.setup(*args, &config)
         self.new(*args).tap do |search_config|
           config.call(search_config) if config
@@ -69,7 +81,7 @@ module CouchrestModelElastic
       def setup
         default_filter! unless filter_set?
         NamedSearches.extend_with_named_searches(self.model, self.named_searches)
-        self.design_mapper.design_doc.add_sync_callback { |_| setup_river }
+        self.class.add_setup_callback { setup_river }
       end
 
       def setup_river
@@ -100,19 +112,17 @@ module CouchrestModelElastic
     end
 
     module DesignSyncCallbacksExtension
+      # Design#sync is only called in Development
+      # See rake task for running callbacks in Production or when auto_update_design_doc == false
       def self.included(design)
         design.send(:alias_method, :sync_without_callbacks!, :sync!)
         design.send(:alias_method, :sync!, :sync_with_callbacks!)
       end
 
-      def add_sync_callback(&clbk)
-        (@sync_callbacks ||= []) << clbk
-      end
-
       def sync_with_callbacks!(*args, &blk)
-        sync_without_callbacks!(*args, &blk).tap {
-          @sync_callbacks.each { |clbk| clbk.call(self) } if @sync_callbacks
-        }
+        sync_without_callbacks!(*args, &blk).tap do
+          CouchrestModelElastic::CouchModelSearchable::SearchConfig.run_setup_callbacks
+        end
       end
     end
   end

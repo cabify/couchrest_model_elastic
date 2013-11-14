@@ -28,3 +28,5 @@ require 'couchrest_model_elastic/river'
 require 'couchrest_model_elastic/search_results'
 require 'couchrest_model_elastic/named_searches'
 require 'couchrest_model_elastic/couch_model_searchable'
+
+require 'couchrest_model_elastic/railtie' if defined?(Rails)
