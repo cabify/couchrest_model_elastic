@@ -4,7 +4,7 @@ describe CouchrestModelElastic::River do
   let(:index_type) { 'TestModel' }
   let(:config) {{
     :couch_host => 'couch.host.com',
-    :couch_port => 1234,
+    :couch_port => '443',
     :couch_db => 'big_db',
     :couch_user => 'bigbird',
     :couch_password => 'topsecret',
@@ -22,6 +22,7 @@ describe CouchrestModelElastic::River do
         'couchdb' => {
           'host' => config[:couch_host],
           'port' => config[:couch_port],
+          'protocol' => 'https',
           'db' => config[:couch_db],
           'user' => config[:couch_user],
           'password' => config[:couch_password],

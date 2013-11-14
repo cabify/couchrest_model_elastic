@@ -62,6 +62,7 @@ module CouchrestModelElastic
         query.couchdb do
           query.host self.couch_host
           query.port self.couch_port
+          query.protocol 'https' if self.couch_port.to_i == 443
           query.db self.couch_db if self.couch_db
           query.user self.couch_user if self.couch_user
           query.password self.couch_password if self.couch_password
