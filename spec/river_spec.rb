@@ -39,7 +39,7 @@ describe CouchrestModelElastic::River do
     mock_client_response(:put, "/#{CouchrestModelElastic::River::RIVER_INDEX}/#{index_type}/#{CouchrestModelElastic::River::SEQ_ID}?op_type=create") do |body|
       expect(body).to eq({
         'couchdb' => {
-          'last_seq' => config[:last_seq]
+          'last_seq' => config[:last_seq].to_s
         }
       })
       [200, {}, '{}']

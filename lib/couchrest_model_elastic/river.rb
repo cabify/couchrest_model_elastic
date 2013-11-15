@@ -21,7 +21,7 @@ module CouchrestModelElastic
         river.couch_filter = opts[:couch_filter]
         river.couch_filter_params = opts[:couch_filter_params]
         river.script = opts[:script] #|| 'ctx._type = ctx.doc.type || "null"'
-        river.last_seq = opts[:last_seq] || 0
+        river.last_seq = opts[:last_seq]
         river.index = opts[:index]
         river.type = opts[:type]
       end
@@ -81,15 +81,18 @@ module CouchrestModelElastic
       end
 
       # Set last_seq
-      begin
-        self.client.create(RIVER_INDEX, self.config_index_type, SEQ_ID) do |query|
-          query.couchdb do
-            query.last_seq self.last_seq
+      if self.last_seq
+        begin
+          self.client.create(RIVER_INDEX, self.config_index_type, SEQ_ID) do |query|
+            query.couchdb do
+              # cast to string, otherwise index will be created with type other than 'string' which can cause problems with some Couchdb versions
+              query.last_seq self.last_seq.to_s
+            end
           end
+        rescue Elasticsearch::Transport::Transport::Errors::Conflict
+          # Last seq already exists
+          # no-op
         end
-      rescue Elasticsearch::Transport::Transport::Errors::Conflict
-        # Last seq already exists
-        # no-op
       end
     end
   end
