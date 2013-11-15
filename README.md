@@ -62,6 +62,8 @@ module Search
   searchable do |config|
     config.result_source_mapper = CouchrestModelElastic::CouchModelSearchable::RESULT_MAPPER
     config.index = User.database.name
+    config.river_config.script = 'if(!ctx.deleted){ for(var prop in ctx.doc) { if(/_at$/.test(prop) && ctx.doc[prop] === ""){ ctx.doc[prop] = null; }}}'
+    
     config.named_search(:autocomplete) do |query, search_string, size = 10|
       query.size size
       # ... Complex query ...
@@ -79,6 +81,7 @@ This additionally does the following:
  * Adds search methods to the `Search` module. The results are not scoped to a *type*. Usage:
    `Search.autocomplete('hello')`
  * Search results are converted into their respective `CouchRest::Model::Base` instances
+ * Applies a script so that Elasticsearch will convert all User document properties ending in _at to null if they are an empty string
 
    ```ruby
    > User === User.search_by_email.first.source
