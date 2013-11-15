@@ -80,8 +80,8 @@ This additionally does the following:
    `User.search_by_email('bill@example.com')`
  * Adds search methods to the `Search` module. The results are not scoped to a *type*. Usage:
    `Search.autocomplete('hello')`
- * Search results are converted into their respective `CouchRest::Model::Base` instances
  * Applies a script so that Elasticsearch will convert all User document properties ending in _at to null if they are an empty string
+ * Search results are converted into their respective `CouchRest::Model::Base` instances
 
    ```ruby
    > User === User.search_by_email.first.source
