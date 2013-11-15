@@ -93,7 +93,8 @@ module CouchrestModelElastic
       end
 
       def default_filter!
-        set_filter(:default, "return doc['#{self.model.model_type_key}'] == '#{self.model_name}';")
+        # Deleted documents only have doc._id, doc._rev, and doc._deleted
+        set_filter(:default, "return doc._deleted || doc['#{self.model.model_type_key}'] == '#{self.model_name}';")
       end
 
       def river_config_index_type
