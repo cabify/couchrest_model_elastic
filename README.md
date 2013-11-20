@@ -87,6 +87,17 @@ This additionally does the following:
    > User === User.search_by_email.first.source
    => true
    ```
+   
+**Configuration** an example configuration in a Rails initializer
+
+```ruby
+CouchrestModelElastic.config do |config|
+  config_yml = YAML.load_file(Rails.root.to_s + '/config/elasticsearch.yml')[Rails.env]
+  config.hosts = config_yml['host']
+  config.log = config_yml['log']
+  config.trace = config_yml['trace']
+end
+```
 
 ## Contributing
 
