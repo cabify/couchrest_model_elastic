@@ -27,6 +27,17 @@ describe CouchrestModelElastic::NamedSearches do
     verify_mocked_responses
   end
 
+  it 'allows search arguments to be defined without block' do
+    mock_client_response(:get, "/#{index}/newType/_search?search_type=count") do |body|
+      expect(body).to eq({'some_query' => {'ok' => 'computer'}})
+      [200, {}, '{}']
+    end
+    named_searches.named_search(:test, type: 'newType', search_type: 'count', body: {'some_query' => {'ok' => 'computer'}})
+
+    named_searches.call(:test)
+    verify_mocked_responses
+  end
+
   it 'applies the result mapper' do
     id = 1234
     named_searches.result_source_mapper = ->(source) { {:other_id => (source['id'] * 2)} }

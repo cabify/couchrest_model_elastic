@@ -10,16 +10,45 @@ module CouchrestModelElastic
     class SearchConfig
       attr_reader :design_mapper, :model, :couchdb_database_config, :couchdb_database_name, :model_name, :search_index, :search_type
 
-      def self.add_setup_callback(&clbk)
-        (@setup_callbacks ||= []) << clbk
+      class SetupCallbacks
+	def initialize
+	  @callbacks = []
+	  @run = true
+	end
+
+	def add(&clbk)
+	  @callbacks << clbk
+	end
+
+	def run?
+	  @run && @callbacks.present?
+	end
+
+	def run=(bool)
+	  @run = bool
+	end
+
+	def run!
+	  count = 0
+	  @callbacks.each { |clbk| clbk.call; count += 1 }.clear if run?
+	  count
+	end
+      end
+
+      def self.setup_callbacks
+	@setup_callbacks ||= SetupCallbacks.new
       end
 
       def self.run_setup_callbacks
         callback_count = 0
-        if @setup_callbacks && (callback_count = @setup_callbacks.size) > 0
+	if @run_setup_callbacks && @setup_callbacks && (callback_count = @setup_callbacks.size) > 0
           @setup_callbacks.each { |clbk| clbk.call }.clear
         end
         callback_count
+      end
+
+      def self.cancel_setup_callbacks
+	@run_setup_callbacks = false
       end
 
       def self.setup(*args, &config)
@@ -56,6 +85,10 @@ module CouchrestModelElastic
         self.named_searches.named_search(*args, &query)
       end
 
+      def named_count(*args, &query)
+	self.named_searches.named_count(*args, &query)
+      end
+
       def named_searches
         @named_searches ||= NamedSearches.new { |ns|
           ns.index = self.search_index
@@ -81,7 +114,7 @@ module CouchrestModelElastic
       def setup
         default_filter! unless filter_set?
         NamedSearches.extend_with_named_searches(self.model, self.named_searches)
-        self.class.add_setup_callback { setup_river }
+	self.class.setup_callbacks.add { setup_river }
       end
 
       def setup_river
@@ -122,7 +155,7 @@ module CouchrestModelElastic
 
       def sync_with_callbacks!(*args, &blk)
         sync_without_callbacks!(*args, &blk).tap do
-          CouchrestModelElastic::CouchModelSearchable::SearchConfig.run_setup_callbacks
+	  CouchrestModelElastic::CouchModelSearchable::SearchConfig.setup_callbacks.run!
         end
       end
     end

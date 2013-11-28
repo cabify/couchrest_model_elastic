@@ -16,7 +16,7 @@ describe CouchrestModelElastic::Client do
       [200, {}, response.to_json]
     end
 
-    client.create('test_index', 'test_type', 'test_id', body)
+    client.create('test_index', 'test_type', 'test_id', body: body)
     verify_mocked_responses
   end
 
@@ -25,7 +25,7 @@ describe CouchrestModelElastic::Client do
       [200, {}, response.to_json]
     end
 
-    client_response = client.create('test_index', 'test_type', 'test_id', body)
+    client_response = client.create('test_index', 'test_type', 'test_id', body: body)
     expect(client_response).to eq(response)
   end
 
@@ -35,7 +35,7 @@ describe CouchrestModelElastic::Client do
       [200, {}, response.to_json]
     end
 
-    client.index('test_index', 'test_type', 'test_id', body)
+    client.index('test_index', 'test_type', 'test_id', body: body)
     verify_mocked_responses
   end
 
@@ -44,7 +44,7 @@ describe CouchrestModelElastic::Client do
       [200, {}, response.to_json]
     end
 
-    client_response = client.index('test_index', 'test_type', 'test_id', body)
+    client_response = client.index('test_index', 'test_type', 'test_id', body: body)
     expect(client_response).to eq(response)
   end
 
@@ -54,7 +54,7 @@ describe CouchrestModelElastic::Client do
       [200, {}, response.to_json]
     end
 
-    client.search('test_index', nil, nil, body)
+    client.search('test_index', body: body)
     verify_mocked_responses
   end
 
@@ -63,7 +63,7 @@ describe CouchrestModelElastic::Client do
       [200, {}, response.to_json]
     end
 
-    client_response = client.search('test_index', nil, nil, body)
+    client_response = client.search('test_index', body: body)
     expect(client_response).to be_an_instance_of(CouchrestModelElastic::SearchResults)
   end
 end

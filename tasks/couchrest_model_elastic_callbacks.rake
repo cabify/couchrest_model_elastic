@@ -6,7 +6,7 @@ namespace :couchrest do
     # Load up the models first so that the callbacks are added
     Dir[Rails.root + 'app/models/**/*.rb'].each { |model_path| require model_path }
     # Run callbacks
-    num_callbacks = CouchrestModelElastic::CouchModelSearchable::SearchConfig.run_setup_callbacks
+    num_callbacks = CouchrestModelElastic::CouchModelSearchable::SearchConfig.setup_callbacks.run!
     puts "#{num_callbacks} Elasticsearch Rivers initialized"
   end
 

@@ -30,7 +30,7 @@ module CouchrestModelElastic
     def self.fetch(config_index_type)
       self.new.tap do |river|
         river.config_index_type = config_index_type
-        river.client.search(RIVER_INDEX, config_index_type).each do |result|
+	river.client.search(RIVER_INDEX, type: config_index_type).each do |result|
           doc = result.source
           case result.id
             when META_ID

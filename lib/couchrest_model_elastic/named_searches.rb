@@ -3,6 +3,7 @@ module CouchrestModelElastic
     include Enumerable
 
     def self.extend_with_named_searches(object, named_searches, helper_method_name = :named_searches)
+      # Mixin an anonymous module into object which creates a helper method and search methods equal to the named_searches
       object.extend(Module.new do
         define_method(helper_method_name) { named_searches }
         named_searches.each do |search_name|
@@ -11,50 +12,40 @@ module CouchrestModelElastic
       end)
     end
 
-    attr_reader :client, :index, :type
+    attr_reader :client
+    attr_accessor :index, :type, :result_source_mapper
+
+    StoredQuery = Struct.new(:search_args, :query)
 
     def initialize(&config)
       @client = Client.new
-      @index = '_all'
-      @type = nil
-      @named_searches = {}
+      self.index = '_all'
+      self.type = nil
+      @query_store = {}
       self.tap(&config) if config
     end
 
-    def result_source_mapper=(mapper)
-      @result_source_mapper = mapper
+    def named_search(name, *query_args, &query_builder)
+      @query_store[name.intern] = StoredQuery.new(query_args, query_builder)
     end
 
-    def index=(i)
-      @index = i
-    end
-
-    def type=(t)
-      @type = t
-    end
-
-    def named_search(name, &query)
-      @named_searches[name.intern] = query
-    end
-
-    def call(search_name, *args)
-      named_search = @named_searches.fetch(search_name.intern)
-      # TODO: add argument arity checking
-      self.search { |query| named_search.call(query, *args) }
-    end
-
-    def search(mapper = self.result_source_mapper, &query_builder)
-      self.client.search(self.index, self.type, mapper, &query_builder)
+    def [](search_name)
+      @query_store.fetch(search_name.intern)
     end
 
     def each(&block)
-      @named_searches.keys.each(&block)
+      @query_store.keys.each(&block)
     end
 
-    protected
+    def call(search_name, *args)
+      stored_query = self[search_name]
+      query_builder = stored_query.query ? Proc.new { |query| stored_query.query.call(query, *args) } : nil
+      self.search(*stored_query.search_args, &query_builder)
+    end
 
-    def result_source_mapper
-      @result_source_mapper ||= ->(source) { source }
+    def search(search_args = {}, &query_builder)
+      args = {index: self.index, type: self.type, result_mapper: self.result_source_mapper}.merge(search_args)
+      self.client.search(args.delete(:index), args, &query_builder)
     end
   end
 end
