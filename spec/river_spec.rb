@@ -2,7 +2,7 @@ require 'spec_helper'
 
 describe CouchrestModelElastic::River do
   let(:index_type) { 'TestModel' }
-  let(:config) {{
+  let(:config) { {
     :couch_host => 'couch.host.com',
     :couch_port => '443',
     :couch_db => 'big_db',
@@ -12,7 +12,7 @@ describe CouchrestModelElastic::River do
     :index => 'SomeIndex',
     :type => 'SomeType',
     :last_seq => rand(999999)
-  }}
+  } }
   let(:river) { described_class.new_with_defaults(index_type, config) }
 
   it 'updates with correct calls to client' do
@@ -55,7 +55,7 @@ describe CouchrestModelElastic::River do
       [200, {}, {'hits' => {'hits' => [
         {'_id' => CouchrestModelElastic::River::STATUS_ID, '_source' => status},
         {'_id' => CouchrestModelElastic::River::SEQ_ID, '_source' => {'couchdb' => {'last_seq' => config[:last_seq]}}},
-        {'_id' => CouchrestModelElastic::River::META_ID, '_source' => { 'couchdb' => {
+        {'_id' => CouchrestModelElastic::River::META_ID, '_source' => {'couchdb' => {
           'host' => config[:couch_host],
           'port' => config[:couch_port],
           'filter' => config[:couch_filter],

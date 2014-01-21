@@ -11,44 +11,44 @@ module CouchrestModelElastic
       attr_reader :design_mapper, :model, :couchdb_database_config, :couchdb_database_name, :model_name, :search_index, :search_type
 
       class SetupCallbacks
-	def initialize
-	  @callbacks = []
-	  @run = true
-	end
+        def initialize
+          @callbacks = []
+          @run = true
+        end
 
-	def add(&clbk)
-	  @callbacks << clbk
-	end
+        def add(&clbk)
+          @callbacks << clbk
+        end
 
-	def run?
-	  @run && @callbacks.present?
-	end
+        def run?
+          @run && @callbacks.present?
+        end
 
-	def run=(bool)
-	  @run = bool
-	end
+        def run=(bool)
+          @run = bool
+        end
 
-	def run!
-	  count = 0
-	  @callbacks.each { |clbk| clbk.call; count += 1 }.clear if run?
-	  count
-	end
+        def run!
+          count = 0
+          @callbacks.each { |clbk| clbk.call; count += 1 }.clear if run?
+          count
+        end
       end
 
       def self.setup_callbacks
-	@setup_callbacks ||= SetupCallbacks.new
+        @setup_callbacks ||= SetupCallbacks.new
       end
 
       def self.run_setup_callbacks
         callback_count = 0
-	if @run_setup_callbacks && @setup_callbacks && (callback_count = @setup_callbacks.size) > 0
+        if @run_setup_callbacks && @setup_callbacks && (callback_count = @setup_callbacks.size) > 0
           @setup_callbacks.each { |clbk| clbk.call }.clear
         end
         callback_count
       end
 
       def self.cancel_setup_callbacks
-	@run_setup_callbacks = false
+        @run_setup_callbacks = false
       end
 
       def self.setup(*args, &config)
@@ -63,9 +63,9 @@ module CouchrestModelElastic
         @model = design_mapper.model
         @model_name = @model.to_s
 
-        @couchdb_database_config =  design_mapper.model.send(:connection_configuration)
+        @couchdb_database_config = design_mapper.model.send(:connection_configuration)
         # This is a bit of a hack since model.database.name would instantiate the server connection, which would fail
-        @couchdb_database_name = [@couchdb_database_config[:prefix], @couchdb_database_config[:suffix]].reject{|s| s.to_s.empty?}.join(@couchdb_database_config[:join])
+        @couchdb_database_name = [@couchdb_database_config[:prefix], @couchdb_database_config[:suffix]].reject { |s| s.to_s.empty? }.join(@couchdb_database_config[:join])
 
         # The Elasticsearch index under which to import
         @search_index = @couchdb_database_name
@@ -86,7 +86,7 @@ module CouchrestModelElastic
       end
 
       def named_count(*args, &query)
-	self.named_searches.named_count(*args, &query)
+        self.named_searches.named_count(*args, &query)
       end
 
       def named_searches
@@ -99,13 +99,13 @@ module CouchrestModelElastic
 
       def river_config
         @river_config ||= CouchrestModelElastic::River.new_with_defaults(self.river_config_index_type,
-          couch_db:       self.couchdb_database_name,
-          couch_host:     self.couchdb_database_config[:host],
-          couch_port:     self.couchdb_database_config[:port],
-          couch_user:     self.couchdb_database_config[:username],
+          couch_db: self.couchdb_database_name,
+          couch_host: self.couchdb_database_config[:host],
+          couch_port: self.couchdb_database_config[:port],
+          couch_user: self.couchdb_database_config[:username],
           couch_password: self.couchdb_database_config[:password],
-          index:          self.search_index,
-          type:           self.search_type
+          index: self.search_index,
+          type: self.search_type
         )
       end
 
@@ -114,7 +114,7 @@ module CouchrestModelElastic
       def setup
         default_filter! unless filter_set?
         NamedSearches.extend_with_named_searches(self.model, self.named_searches)
-	self.class.setup_callbacks.add { setup_river }
+        self.class.setup_callbacks.add { setup_river }
       end
 
       def setup_river
@@ -155,7 +155,7 @@ module CouchrestModelElastic
 
       def sync_with_callbacks!(*args, &blk)
         sync_without_callbacks!(*args, &blk).tap do
-	  CouchrestModelElastic::CouchModelSearchable::SearchConfig.setup_callbacks.run!
+          CouchrestModelElastic::CouchModelSearchable::SearchConfig.setup_callbacks.run!
         end
       end
     end
